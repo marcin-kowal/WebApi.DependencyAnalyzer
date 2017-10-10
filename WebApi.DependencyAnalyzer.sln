@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi.DependencyAnalyzer.Engine", "WebApi.DependencyAnalyzer.Engine\WebApi.DependencyAnalyzer.Engine.csproj", "{B4ED4ADB-D723-4517-BF30-CBA5E5FCA1E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7CA33DC8-4604-4992-89C3-B8C8FEEF2ABA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi.DependencyAnalyzer.Engine.Tests", "WebApi.DependencyAnalyzer.Engine.Tests\WebApi.DependencyAnalyzer.Engine.Tests.csproj", "{31D41B9D-4CD9-4E11-ABB0-9F6B92C3415E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4ED4ADB-D723-4517-BF30-CBA5E5FCA1E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4ED4ADB-D723-4517-BF30-CBA5E5FCA1E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4ED4ADB-D723-4517-BF30-CBA5E5FCA1E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4ED4ADB-D723-4517-BF30-CBA5E5FCA1E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31D41B9D-4CD9-4E11-ABB0-9F6B92C3415E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31D41B9D-4CD9-4E11-ABB0-9F6B92C3415E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31D41B9D-4CD9-4E11-ABB0-9F6B92C3415E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31D41B9D-4CD9-4E11-ABB0-9F6B92C3415E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{31D41B9D-4CD9-4E11-ABB0-9F6B92C3415E} = {7CA33DC8-4604-4992-89C3-B8C8FEEF2ABA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ECBF4D8D-4793-4588-B341-23421A25A303}
+	EndGlobalSection
+EndGlobal
