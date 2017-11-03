@@ -12,6 +12,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
     {
         private readonly int _size;
         private readonly Queue<TValue> _queue;
+        private Func<TValue, TValue, TValue> _amendOperator;
 
         public LimitedQueue(int size)
         {
@@ -19,14 +20,46 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
             _queue = new Queue<TValue>(_size);
         }
 
+        public LimitedQueue<TValue> WithAmendOperator(Func<TValue, TValue, TValue> amendOperator)
+        {
+            _amendOperator = amendOperator;
+            return this;
+        }
+
         public void Enqueue(TValue value)
         {
             if (_queue.Count >= _size)
             {
-                _queue.Dequeue();
+                Dequeue();
             }
 
             _queue.Enqueue(value);
+        }
+
+        public void Amend(TValue value, Func<TValue, TValue, TValue> amendOperator = null)
+        {
+            if (Count == 0)
+            {
+                Enqueue(value);
+                return;
+            }
+
+            amendOperator = amendOperator ?? _amendOperator;
+            if (amendOperator == null)
+            {
+                throw new ArgumentNullException(nameof(amendOperator));
+            }
+
+            TValue[] elements = ToArray();
+            Clear();
+
+            int lastElementIndex = elements.Length - 1;
+            elements[lastElementIndex] = amendOperator(elements[lastElementIndex], value);
+
+            foreach (TValue element in elements)
+            {
+                Enqueue(element);
+            }
         }
 
         public TValue Dequeue() => _queue.Dequeue();
