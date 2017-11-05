@@ -11,7 +11,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
         private const string Marker = "##";
         private const string DirectoryMarker = Marker + "DIR" + Marker;
         private const string FileMarker = Marker + "FILE" + Marker;
+        private const string ScannerMarker = Marker + "SCANNER" + Marker;
         private const string SingleLine = "SingleLine";
+        private const string MultiLine = "MultiLine";
 
         private const string IldasmPath = "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\ildasm.exe";
         private string IldasmCommand => "\\\"" + DuplicateBackslash(IldasmPath) + "\\\"\",";
@@ -50,7 +52,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
         {
             get
             {
-                string[] configDataSingleLine = new[]
+                string[] configData = new[]
                 {
                     "{",
                     "'items': [",
@@ -61,7 +63,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "'includeSubdirs': 'false',",
                     "'textSearchPatterns': [ 'api/v1.*' ],",
                     "'textSearchPatternsExclude': [ '/swagger' ],",
-                    "'scanners': [ '" + SingleLine + "' ]",
+                    "'scanners': [ '" + ScannerMarker + "' ]",
                     "},",
                     "],",
                     "'process': {",
@@ -71,10 +73,13 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "}"
                 };
 
-                string[] configDataMultiLine = new[]
-                {
-                    ""
-                };
+                string[] configDataSingleLine = configData
+                    .Select(line => line.Replace(ScannerMarker, SingleLine))
+                    .ToArray();
+
+                string[] configDataMultiLine = configData
+                    .Select(line => line.Replace(ScannerMarker, MultiLine))
+                    .ToArray();
 
                 string[] fileData1 = new[]
                 {
@@ -124,7 +129,10 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "api/v1/module-management/bids/{0}/{1}/versions/{2}/dashboard/settings/hierarchy/items"
                 };
 
-                yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
+                //yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
+                //yield return new object[] { configDataMultiLine, fileData1, expectedResult1 };
+                //yield return new object[] { configDataMultiLine, fileData2, expectedResult2 };
+                yield return new object[] { configDataMultiLine, fileData3, expectedResult3 };
             }
         }
 

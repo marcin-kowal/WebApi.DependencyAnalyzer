@@ -5,6 +5,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
     public class ConfigItem : IConfigItem
     {
         private static readonly char[] _trimPatterns = new[] { ' ', '\'', '"' };
+        private static readonly string[] _concatOperators = new[] { "+" };
 
         public ConfigItem(
             string[] directories,
@@ -25,6 +26,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
         }
 
         public char[] TrimPatterns { get; } = _trimPatterns;
+        public string[] ConcatOperators { get; } = _concatOperators;
 
         [JsonProperty("directories")]
         public string[] Directories { get; }

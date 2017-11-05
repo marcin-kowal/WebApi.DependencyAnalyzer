@@ -46,7 +46,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 
                 string[] lines = new[] { " line: ", "text t", "o search@" };
 
-                ScanResult expectedResultSuccess = ScanResult.Success("xt to search", "line: text to");
+                ScanResult expectedResultSuccess = ScanResult.Success("xt to search", "line:text to");
                 ScanResult expectedResultPartialSuccess = ScanResult.Success("xt to search");
                 ScanResult expectedResultFailure = ScanResult.Failure();
 
