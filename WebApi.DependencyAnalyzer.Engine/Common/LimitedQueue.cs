@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WebApi.DependencyAnalyzer.Engine.Common
 {
-    internal class LimitedQueue<TValue> : 
-        IEnumerable<TValue>, 
-        IEnumerable, 
-        IReadOnlyCollection<TValue>, 
+    internal class LimitedQueue<TValue> :
+        IReadOnlyCollection<TValue>,
         ICollection
     {
         private readonly int _size;
         private readonly Queue<TValue> _queue;
-        private Func<TValue, TValue, TValue> _amendOperator;
+        private Func<TValue, TValue, TValue> _appendOperator;
+        private Func<TValue, TValue, TValue> _prependOperator;
 
         public LimitedQueue(int size)
         {
@@ -20,9 +20,17 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
             _queue = new Queue<TValue>(_size);
         }
 
-        public LimitedQueue<TValue> WithAmendOperator(Func<TValue, TValue, TValue> amendOperator)
+        public LimitedQueue<TValue> WithAppendOperator(Func<TValue, TValue, TValue> appendOperator)
         {
-            _amendOperator = amendOperator;
+            _appendOperator = appendOperator;
+
+            return this;
+        }
+
+        public LimitedQueue<TValue> WithPrependOperator(Func<TValue, TValue, TValue> prependOperator)
+        {
+            _prependOperator = prependOperator;
+
             return this;
         }
 
@@ -36,7 +44,37 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
             _queue.Enqueue(value);
         }
 
-        public void Amend(TValue value, Func<TValue, TValue, TValue> amendOperator = null)
+        public TValue Unenqueue()
+        {
+            TValue lastElement = default(TValue);
+
+            if (Count > 0)
+            {
+                TValue[] elements = ToArray();
+                Clear();
+
+                foreach (TValue element in elements.Take(elements.Length - 1))
+                {
+                    Enqueue(element);
+                }
+
+                lastElement = elements.Last();
+            }
+
+            return lastElement;
+        }
+
+        public void AppendToLast(TValue value)
+        {
+            ModifyLast(value, _appendOperator);
+        }
+
+        public void PrependToLast(TValue value)
+        {
+            ModifyLast(value, _prependOperator);
+        }
+
+        internal void ModifyLast(TValue value, Func<TValue, TValue, TValue> modifyOperator)
         {
             if (Count == 0)
             {
@@ -44,17 +82,16 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
                 return;
             }
 
-            amendOperator = amendOperator ?? _amendOperator;
-            if (amendOperator == null)
+            if (modifyOperator == null)
             {
-                throw new ArgumentNullException(nameof(amendOperator));
+                throw new ArgumentNullException(nameof(modifyOperator));
             }
 
             TValue[] elements = ToArray();
             Clear();
 
             int lastElementIndex = elements.Length - 1;
-            elements[lastElementIndex] = amendOperator(elements[lastElementIndex], value);
+            elements[lastElementIndex] = modifyOperator(elements[lastElementIndex], value);
 
             foreach (TValue element in elements)
             {
