@@ -11,9 +11,13 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
     {
         [Theory]
         [MemberData(nameof(ScanData))]
-        public void ScanTest(IScannerConfig config, string line, ScanResult expectedResult)
+        public void ScanTest(
+            IScannerConfig config, 
+            IPreprocessorConfig preprocessorConfig,
+            string line, 
+            ScanResult expectedResult)
         {
-            SingleLineScanner scanner = new SingleLineScanner(config);
+            SingleLineScanner scanner = new SingleLineScanner(config, new ScanPreprocessor(preprocessorConfig));
             scanner.AppendLine(line);
 
             ScanResult result = scanner.Scan();
@@ -28,14 +32,15 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 string[] textSearchPatterns = new[] { "xt.*", ".* to" };
                 char[] trimPatterns = new[] { ' ', '@' };
 
+                IPreprocessorConfig preprocessorConfig = Substitute.For<IPreprocessorConfig>();
+                preprocessorConfig.TrimTokens.Returns(trimPatterns);
+
                 IScannerConfig configSuccess = Substitute.For<IScannerConfig>();
                 configSuccess.TextSearchPatterns.Returns(textSearchPatterns);
-                configSuccess.TrimPatterns.Returns(trimPatterns);
 
                 IScannerConfig configPartialSuccess = Substitute.For<IScannerConfig>();
                 configPartialSuccess.TextSearchPatterns.Returns(textSearchPatterns);
                 configPartialSuccess.TextSearchPatternsExclude.Returns(new[] { "ine" });
-                configPartialSuccess.TrimPatterns.Returns(trimPatterns);
 
                 IScannerConfig configFailure = Substitute.For<IScannerConfig>();
                 configFailure.TextSearchPatterns.Returns(new[] { "xt.*", ".* to" });
@@ -47,9 +52,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 ScanResult expectedResultPartialSuccess = ScanResult.Success("xt to search");
                 ScanResult expectedResultFailure = ScanResult.Failure();
 
-                yield return new object[] { configSuccess, line, expectedResultSuccess };
-                yield return new object[] { configPartialSuccess, line, expectedResultPartialSuccess };
-                yield return new object[] { configFailure, line, expectedResultFailure };
+                yield return new object[] { configSuccess, preprocessorConfig, line, expectedResultSuccess };
+                yield return new object[] { configPartialSuccess, preprocessorConfig, line, expectedResultPartialSuccess };
+                yield return new object[] { configFailure, preprocessorConfig, line, expectedResultFailure };
             }
         }
     }

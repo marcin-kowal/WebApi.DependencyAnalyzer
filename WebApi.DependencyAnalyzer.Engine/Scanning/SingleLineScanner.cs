@@ -8,15 +8,19 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
     internal class SingleLineScanner : IScanner
     {
         private readonly IScannerConfig _config;
+        private readonly IScanPreprocessor _preprocessor;
         private string _line;
 
-        public SingleLineScanner(IScannerConfig config)
+        public SingleLineScanner(IScannerConfig config, IScanPreprocessor preprocessor)
         {
             _config = config;
+            _preprocessor = preprocessor;
         }
 
         public void AppendLine(string line)
         {
+            line = _preprocessor.Preprocess(line);
+
             _line = line;
         }
 
@@ -25,7 +29,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             IEnumerable<string> matches = _config.TextSearchPatterns
                 .Select(pattern => new Regex(pattern).Match(_line))
                 .Where(match => match.Success)
-                .Select(match => match.Value.Trim(_config.TrimPatterns));
+                .Select(match => _preprocessor.Preprocess(match.Value));
 
             matches = matches
                 .Where(match => !_config.TextSearchPatternsExclude

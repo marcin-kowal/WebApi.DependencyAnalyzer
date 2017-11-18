@@ -11,8 +11,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
     {
         private readonly int _size;
         private readonly Queue<TValue> _queue;
-        private Func<TValue, TValue, TValue> _appendOperator;
-        private Func<TValue, TValue, TValue> _prependOperator;
 
         public LimitedQueue(int size)
         {
@@ -20,23 +18,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
             _queue = new Queue<TValue>(_size);
         }
 
-        public LimitedQueue<TValue> WithAppendOperator(Func<TValue, TValue, TValue> appendOperator)
-        {
-            _appendOperator = appendOperator;
-
-            return this;
-        }
-
-        public LimitedQueue<TValue> WithPrependOperator(Func<TValue, TValue, TValue> prependOperator)
-        {
-            _prependOperator = prependOperator;
-
-            return this;
-        }
-
         public void Enqueue(TValue value)
         {
-            if (_queue.Count >= _size)
+            if (Count >= _size)
             {
                 Dequeue();
             }
@@ -64,39 +48,18 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
             return lastElement;
         }
 
-        public void AppendToLast(TValue value)
+        public TValue PeekLast()
         {
-            ModifyLast(value, _appendOperator);
-        }
+            TValue lastElement = default(TValue);
 
-        public void PrependToLast(TValue value)
-        {
-            ModifyLast(value, _prependOperator);
-        }
-
-        internal void ModifyLast(TValue value, Func<TValue, TValue, TValue> modifyOperator)
-        {
-            if (Count == 0)
+            if (Count > 0)
             {
-                Enqueue(value);
-                return;
+                TValue[] elements = ToArray();
+
+                lastElement = elements.Last();
             }
 
-            if (modifyOperator == null)
-            {
-                throw new ArgumentNullException(nameof(modifyOperator));
-            }
-
-            TValue[] elements = ToArray();
-            Clear();
-
-            int lastElementIndex = elements.Length - 1;
-            elements[lastElementIndex] = modifyOperator(elements[lastElementIndex], value);
-
-            foreach (TValue element in elements)
-            {
-                Enqueue(element);
-            }
+            return lastElement;
         }
 
         public TValue Dequeue() => _queue.Dequeue();

@@ -58,6 +58,8 @@ namespace WebApi.DependencyAnalyzer.Engine
 
         private IScanner CreateScanner(IConfigItem config)
         {
+            IScanPreprocessor preprocessor = CreateScanPreprocessor(config);
+
             string scannerNamespace = typeof(IScanner).Namespace;
 
             Type[] scannerTypes = config.Scanners
@@ -66,7 +68,7 @@ namespace WebApi.DependencyAnalyzer.Engine
                 .ToArray();
 
             IScanner[] scanners = scannerTypes
-                .Select(scannerType => (IScanner)Activator.CreateInstance(scannerType, config))
+                .Select(scannerType => (IScanner)Activator.CreateInstance(scannerType, config, preprocessor))
                 .ToArray();
 
             if (scanners.Length > 1)
@@ -87,6 +89,11 @@ namespace WebApi.DependencyAnalyzer.Engine
             }
 
             throw new ArgumentOutOfRangeException(nameof(config.Scanners));
+        }
+
+        private IScanPreprocessor CreateScanPreprocessor(IPreprocessorConfig config)
+        {
+            return new ScanPreprocessor(config);
         }
     }
 }

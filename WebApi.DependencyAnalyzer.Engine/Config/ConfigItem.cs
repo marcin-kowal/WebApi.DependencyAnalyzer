@@ -4,9 +4,10 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
 {
     public class ConfigItem : IConfigItem
     {
-        private static readonly char[] _trimPatterns = new[] { ' ', '\'', '"' };
-        private static readonly string[] _appendOperators = new[] { "+" };
-        private static readonly string[] _prependOperators = new[] { "ldstr" };
+        private static readonly char[] _trimTokens = new[] { ' ', '\'', '"' };
+        private static readonly string[] _removeTokens = new[] { "IL_[0-9]*:" };
+        private static readonly string[] _appendTokens = new[] { "+" };
+        private static readonly string[] _prependTokens = new[] { "ldstr" };
 
         public ConfigItem(
             string[] directories,
@@ -26,9 +27,10 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
             Scanners = scanners;
         }
 
-        public char[] TrimPatterns { get; } = _trimPatterns;
-        public string[] AppendOperators { get; } = _appendOperators;
-        public string[] PrependOperators { get; } = _prependOperators;
+        public char[] TrimTokens { get; } = _trimTokens;
+        public string[] RemoveTokens { get; } = _removeTokens;
+        public string[] AppendTokens { get; } = _appendTokens;
+        public string[] PrependTokens { get; } = _prependTokens;
 
         [JsonProperty("directories")]
         public string[] Directories { get; }
