@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using WebApi.DependencyAnalyzer.Engine.Tests.Common;
@@ -15,9 +16,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
         private const string SingleLine = "SingleLine";
         private const string MultiLine = "MultiLine";
 
-        private const string IldasmPath = "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\ildasm.exe";
-        private string IldasmCommand => "\\\"" + DuplicateBackslash(IldasmPath) + "\\\"\",";
-        private const string IldasmArguments = "/text \\\"{0}\\\" /unicode /metadata";
+        //private const string IldasmPath = "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\ildasm.exe";
+        //private string IldasmCommand => "\\\"" + DuplicateBackslash(IldasmPath) + "\\\"\",";
+        //private const string IldasmArguments = "/text \\\"{0}\\\" /unicode /metadata";
 
         private const string CmdTypeCommand = "cmd";
         private const string CmdTypeArguments = "/k type {0} & exit";
@@ -74,11 +75,11 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                 };
 
                 string[] configDataSingleLine = configData
-                    .Select(line => line.Replace(ScannerMarker, SingleLine))
+                    .Select(line => line.Replace(ScannerMarker, SingleLine, StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
                 string[] configDataMultiLine = configData
-                    .Select(line => line.Replace(ScannerMarker, MultiLine))
+                    .Select(line => line.Replace(ScannerMarker, MultiLine, StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
                 string[] fileData1 = new[]
@@ -141,15 +142,15 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
             return configData
                 .Select(configLine => configLine.Contains(Marker)
                     ? configLine
-                        .Replace(DirectoryMarker, DuplicateBackslash(dataFile.DirectoryPath))
-                        .Replace(FileMarker, dataFile.FileName)
+                        .Replace(DirectoryMarker, DuplicateBackslash(dataFile.DirectoryPath), StringComparison.OrdinalIgnoreCase)
+                        .Replace(FileMarker, dataFile.FileName, StringComparison.OrdinalIgnoreCase)
                     : configLine)
                 .ToArray();
         }
 
         private static string DuplicateBackslash(string source)
         {
-            return source.Replace(@"\", @"\\");
+            return source.Replace(@"\", @"\\", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

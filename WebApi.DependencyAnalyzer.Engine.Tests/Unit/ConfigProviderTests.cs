@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using WebApi.DependencyAnalyzer.Engine.Config;
@@ -57,7 +58,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 ConfigItem[] items = new ConfigItem[]
                 {
                     new ConfigItem(
-                        directories.Select(d => d.Replace(@"\\", @"\")).ToArray(),
+                        directories.Select(d => d.Replace(@"\\", @"\", StringComparison.OrdinalIgnoreCase)).ToArray(),
                         fileNamePatterns,
                         fileNamePatternsExclude,
                         includeSubdirs,

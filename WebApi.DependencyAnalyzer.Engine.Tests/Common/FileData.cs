@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WebApi.DependencyAnalyzer.Engine.Tests.Common
 {
-    internal class FileData : IDisposable
+    internal sealed class FileData : IDisposable
     {
         private FileData(string filePath)
         {

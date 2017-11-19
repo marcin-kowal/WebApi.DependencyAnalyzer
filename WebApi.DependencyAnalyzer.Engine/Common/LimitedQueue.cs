@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace WebApi.DependencyAnalyzer.Engine.Common
 {
-    internal class LimitedQueue<TValue> :
-        IReadOnlyCollection<TValue>,
-        ICollection
+    internal class LimitedQueue<TValue> : IReadOnlyCollection<TValue>
     {
         private readonly int _size;
         private readonly Queue<TValue> _queue;
@@ -76,12 +73,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Common
 
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_queue).GetEnumerator();
 
-        public void CopyTo(Array array, int index) => _queue.CopyTo((TValue[])array, index);
-
         public int Count => _queue.Count;
-
-        public bool IsSynchronized => throw new NotImplementedException();
-
-        public object SyncRoot => throw new NotImplementedException();
     }
 }

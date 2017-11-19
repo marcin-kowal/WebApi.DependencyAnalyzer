@@ -66,7 +66,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             {
                 int size = 3;
 
-                string[] values0 = new string [0];
+                string[] values0 = Array.Empty<string>();
                 string[] values1 = new[] { "a" };
                 string[] values3 = new[] { "a", "b", "c", "d" };
 
@@ -74,8 +74,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 string expectedResult1 = values1.Last();
                 string expectedResult3 = values3.Last();
 
-                string[] expectedValues0 = new string[0];
-                string[] expectedValues1 = new string[0];
+                string[] expectedValues0 = Array.Empty<string>();
+                string[] expectedValues1 = Array.Empty<string>();
                 string[] expectedValues3 = new[] { "b", "c" };
 
                 yield return new object[] { size, values0, expectedResult0, expectedValues0 };
@@ -112,7 +112,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             {
                 int size = 3;
 
-                string[] values0 = new string[0];
+                string[] values0 = Array.Empty<string>();
                 string[] values1 = new[] { "a" };
                 string[] values3 = new[] { "a", "b", "c", "d" };
 
@@ -120,7 +120,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 string expectedResult1 = values1.Last();
                 string expectedResult3 = values3.Last();
 
-                string[] expectedValues0 = new string[0];
+                string[] expectedValues0 = Array.Empty<string>();
                 string[] expectedValues1 = new[] { "a" };
                 string[] expectedValues3 = new[] { "b", "c", "d" };
 
