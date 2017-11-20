@@ -14,14 +14,31 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         public string Preprocess(string text)
         {
+            text = TrimStart(text);
+            
             foreach (string token in _config.RemoveTokens)
             {
                 text = new Regex(token).Replace(text, string.Empty);
             }
 
-            text = text.Trim(_config.TrimTokens);
+            text = Trim(text);
 
             return text;
+        }
+
+        public string TrimStart(string text)
+        {
+            return text.TrimStart(_config.TrimTokens);
+        }
+
+        public string TrimEnd(string text)
+        {
+            return text.TrimEnd(_config.TrimTokens);
+        }
+
+        public string Trim(string text)
+        {
+            return text.Trim(_config.TrimTokens);
         }
     }
 }

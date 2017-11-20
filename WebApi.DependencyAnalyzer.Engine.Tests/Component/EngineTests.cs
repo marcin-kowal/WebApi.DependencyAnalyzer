@@ -96,18 +96,29 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
 
                 string[] fileData2 = new[]
                 {
-                    "IL_0015:  ldstr      \"{0}/users\"",
-                    "IL_001a: ldstr      \"api/v1/module-management\"",
-
-                    "IL_0002:  ldstr      \"{0}/{1}/tags/commodities/all\"",
-                    "IL_0007: ldstr      \"api/v1/module/bids\"",
-                };
-
-                string[] fileData3 = new[]
-                {
                     "IL_0010:  ldstr      \"{0}/{1}/versions/{2}/dashboard/settings/hierarchy/\"",
                     "+ \"items\"",
-                    "IL_0015: ldstr      \"api/v1/module-management/bids\"",
+                    "IL_0015: ldstr      \"api/v1/module-management/bids/\"",
+                };
+
+                //string.Format("{0}/{1}/versions/{2}/dashboard/settings/hierarchy/items", "api/v1/module-management/bids", cVer, pVer);
+                string[] fileData3 = new[]
+                {
+                    "IL_000e: nop",
+                    "IL_000f:  ldarg.0",
+                    "        IL_0010: ldstr      \"{0}/{1}/versions/{2}/dashboard/settings/hierarchy/\"",
+                    "       + \"items\"",
+                    "        IL_0015: ldstr      \"api/v1/module-management/bids\"",
+                    "        IL_001a: ldarg.0",
+                    "        IL_001b: ldfld int32 RestfulService / '<Get>d__3'::cVer",
+                    "        IL_0020: box[mscorlib]System.Int32",
+                    "IL_0025:  ldarg.0",
+                    "        IL_0026: ldfld valuetype[mscorlib]System.Guid RestfulService / '<Get>d__3'::pVer",
+                    "        IL_002b: box[mscorlib]System.Guid",
+                    "IL_0030:  call       string[mscorlib] System.String::Format(string,",
+                    "                                                           object,",
+                    "                                                           object,",
+                    "                                                           object)"
                 };
 
                 string[] expectedResult1 = new[]
@@ -118,22 +129,15 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "api/v1/module/currencies/default",
                 };
 
-                string[] expectedResult2 = new[]
-                {
-                    "api/v1/module-management/{0}/users",
-
-                    "api/v1/module/bids/{0}/{1}/tags/commodities/all",
-                };
-
-                string[] expectedResult3 = new[]
+                string[] expectedResult2_3 = new[]
                 {
                     "api/v1/module-management/bids/{0}/{1}/versions/{2}/dashboard/settings/hierarchy/items"
                 };
 
-                //yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
-                //yield return new object[] { configDataMultiLine, fileData1, expectedResult1 };
-                //yield return new object[] { configDataMultiLine, fileData2, expectedResult2 };
-                yield return new object[] { configDataMultiLine, fileData3, expectedResult3 };
+                yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
+                yield return new object[] { configDataMultiLine, fileData1, expectedResult1 };
+                yield return new object[] { configDataMultiLine, fileData2, expectedResult2_3 };
+                //yield return new object[] { configDataMultiLine, fileData3, expectedResult2_3 };
             }
         }
 

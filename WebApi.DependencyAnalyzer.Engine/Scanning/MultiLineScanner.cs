@@ -25,14 +25,26 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         public void AppendLine(string line)
         {
-            line = _preprocessor.Preprocess(line);
+            line = _preprocessor.TrimStart(line);
 
-            if (TryAppendToLastLine(line) || TryEnqueue(line))
+            if (StartsWithInstruction(line))
             {
-                string joinedLines = string.Join(string.Empty, _lines);
 
-                _singleLineScanner.AppendLine(joinedLines);
+
             }
+            else
+            {
+                AppendToLastLine(line);
+            }
+
+            //line = _preprocessor.Preprocess(line);
+
+            //if (TryAppendToLastLine(line) || TryEnqueue(line))
+            //{
+            //    string joinedLines = string.Join(string.Empty, _lines);
+
+            //    _singleLineScanner.AppendLine(joinedLines);
+            //}
         }
 
         public ScanResult Scan()
