@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using NSubstitute;
 using System.Collections.Generic;
+using System.Linq;
 using WebApi.DependencyAnalyzer.Engine.Config;
 using WebApi.DependencyAnalyzer.Engine.Scanning;
 using Xunit;
@@ -15,14 +16,16 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             IScannerConfig config, 
             IPreprocessorConfig preprocessorConfig,
             string line, 
-            ScanResult expectedResult)
+            ScanResult[] expectedResult)
         {
             SingleLineScanner scanner = new SingleLineScanner(config, new ScanPreprocessor(preprocessorConfig));
+
             scanner.AppendLine(line);
+            scanner.Scan();
 
-            ScanResult result = scanner.Scan();
+            IReadOnlyCollection<ScanResult> result = scanner.GetResult();
 
-            result.ShouldBeEquivalentTo(expectedResult);
+            result.ShouldAllBeEquivalentTo(expectedResult);
         }
 
         public static IEnumerable<object[]> ScanData
@@ -48,9 +51,11 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 
                 string line = " line: text to search@";
 
-                ScanResult expectedResultSuccess = ScanResult.Success("xt to search", "line: text to");
-                ScanResult expectedResultPartialSuccess = ScanResult.Success("xt to search");
-                ScanResult expectedResultFailure = ScanResult.Failure();
+                ScanResult[] expectedResultSuccess = new[] { "xt to search", "line: text to" }
+                    .Select(result => ScanResult.Success(result))
+                    .ToArray();
+                ScanResult[] expectedResultPartialSuccess = new[] { ScanResult.Success("xt to search") };
+                ScanResult[] expectedResultFailure = new[] { ScanResult.Failure() };
 
                 yield return new object[] { configSuccess, preprocessorConfig, line, expectedResultSuccess };
                 yield return new object[] { configPartialSuccess, preprocessorConfig, line, expectedResultPartialSuccess };

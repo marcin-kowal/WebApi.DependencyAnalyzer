@@ -21,7 +21,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
         {
             Analyzer analyzer = new Analyzer(fileProvider, decompiler, scanner);
 
-            string[] result = analyzer.Analyze();
+            IReadOnlyCollection<string> result = analyzer.Analyze();
 
             result.ShouldAllBeEquivalentTo(expectedResult);
         }
@@ -52,14 +52,14 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 decompiler2.ReadLine().Returns(lines[0], lines.Skip(1).ToArray());
 
                 IScanner scanner1 = Substitute.For<IScanner>();
-                scanner1.Scan().Returns(
+                scanner1.GetResult().Returns(new[] {
                     ScanResult.Success("line"), ScanResult.Failure(),
-                    ScanResult.Success("line"));
+                    ScanResult.Success("line") });
 
                 IScanner scanner2 = Substitute.For<IScanner>();
-                scanner2.Scan().Returns(
+                scanner2.GetResult().Returns(new[] {
                     ScanResult.Success("line1"), ScanResult.Success("line2"),
-                    ScanResult.Success("line3"));
+                    ScanResult.Success("line3") });
 
                 string[] expectedResult1 = new[] { "line" };
                 string[] expectedResult2 = new[] { "line1", "line2", "line3" };

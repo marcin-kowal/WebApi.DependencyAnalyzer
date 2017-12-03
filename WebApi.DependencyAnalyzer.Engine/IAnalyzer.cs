@@ -1,8 +1,9 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace WebApi.DependencyAnalyzer.Engine
 {
     public interface IAnalyzer
     {
-        string[] Analyze();
+        IReadOnlyCollection<string> Analyze();
     }
 }

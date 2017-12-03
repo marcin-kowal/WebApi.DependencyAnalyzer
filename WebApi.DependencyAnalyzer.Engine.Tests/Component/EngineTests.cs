@@ -39,7 +39,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
 
                     foreach (IAnalyzer analyzer in analyzers)
                     {
-                        string[] result = analyzer.Analyze();
+                        IReadOnlyCollection<string> result = analyzer.Analyze();
 
                         results.AddRange(result);
                     }
@@ -96,9 +96,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
 
                 string[] fileData2 = new[]
                 {
-                    "IL_0010:  ldstr      \"{0}/{1}/versions/{2}/dashboard/settings/hierarchy/\"",
-                    "+ \"items\"",
                     "IL_0015: ldstr      \"api/v1/module-management/bids/\"",
+                    "+ \"{0}/{1}/versions/{2}/dashboard/settings/hierarchy/\"",
+                    "+ \"items\""
                 };
 
                 //string.Format("{0}/{1}/versions/{2}/dashboard/settings/hierarchy/items", "api/v1/module-management/bids", cVer, pVer);
@@ -129,15 +129,20 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "api/v1/module/currencies/default",
                 };
 
-                string[] expectedResult2_3 = new[]
+                string[] expectedResult2 = new[]
                 {
                     "api/v1/module-management/bids/{0}/{1}/versions/{2}/dashboard/settings/hierarchy/items"
                 };
 
+                string[] expectedResult3 = new[]
+                {
+                    "api/v1/module-management/bids/{1}/versions/{2}/dashboard/settings/hierarchy/items"
+                };
+
                 yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
                 yield return new object[] { configDataMultiLine, fileData1, expectedResult1 };
-                yield return new object[] { configDataMultiLine, fileData2, expectedResult2_3 };
-                //yield return new object[] { configDataMultiLine, fileData3, expectedResult2_3 };
+                yield return new object[] { configDataMultiLine, fileData2, expectedResult2 };
+                yield return new object[] { configDataMultiLine, fileData3, expectedResult3 };
             }
         }
 

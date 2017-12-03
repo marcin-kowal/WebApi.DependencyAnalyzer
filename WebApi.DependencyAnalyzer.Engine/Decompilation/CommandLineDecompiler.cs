@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using WebApi.DependencyAnalyzer.Engine.Config;
 
@@ -41,7 +42,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Decompilation
 
         private ProcessStartInfo CreateProcessInfo(string filePath)
         {
-            string arguments = string.Format(_config.Arguments, filePath);
+            string arguments = string.Format(CultureInfo.InvariantCulture, _config.Arguments, filePath);
 
             ProcessStartInfo processInfo = new ProcessStartInfo(_config.Command, arguments)
             {

@@ -3,9 +3,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
     public class ScanResult
     {
-        public static ScanResult Success(params string[] values)
+        public static ScanResult Success(string value)
         {
-            return new ScanResult(true, values);
+            return new ScanResult(true, value);
         }
 
         public static ScanResult Failure()
@@ -13,13 +13,13 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             return new ScanResult(false, null);
         }
 
-        private ScanResult(bool success, string[] values)
+        private ScanResult(bool success, string value)
         {
             IsSuccess = success;
-            Values = values;
+            Value = value;
         }
 
         public bool IsSuccess { get; }
-        public string[] Values { get; }
+        public string Value { get; }
     }
 }

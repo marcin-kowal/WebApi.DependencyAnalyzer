@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using WebApi.DependencyAnalyzer.Engine.Config;
 
 namespace WebApi.DependencyAnalyzer.Engine.Scanning
@@ -12,11 +13,11 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             _config = config;
         }
 
-        public string Preprocess(string text)
+        public string Preprocess(string text, IReadOnlyCollection<string> tokensToRemove)
         {
             text = TrimStart(text);
             
-            foreach (string token in _config.RemoveTokens)
+            foreach (string token in tokensToRemove)
             {
                 text = new Regex(token).Replace(text, string.Empty);
             }

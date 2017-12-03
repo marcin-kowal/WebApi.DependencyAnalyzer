@@ -42,16 +42,18 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 
         [Theory]
         [MemberData(nameof(ScanData))]
-        public void ScanTest(IScanner[] scanners, ScanResult expectedResult)
+        public void ScanTest(IScanner[] scanners, ScanResult[] expectedResult)
         {
             CompositeScanner compositeScanner = new CompositeScanner();
 
             foreach (IScanner scanner in scanners)
             { compositeScanner.AddScanner(scanner); }
 
-            ScanResult result = compositeScanner.Scan();
+            compositeScanner.Scan();
 
-            result.ShouldBeEquivalentTo(expectedResult);
+            IReadOnlyCollection<ScanResult> results = compositeScanner.GetResult();
+
+            results.ShouldAllBeEquivalentTo(expectedResult);
         }
 
         public static IEnumerable<object[]> ScanData
@@ -76,8 +78,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                     GetScanner(true, scanResults2),
                 };
 
-                ScanResult expectedResultNoSuccess = ScanResult.Failure();
-                ScanResult expectedResultSuccess = ScanResult.Success(scanResultsTotal);
+                ScanResult[] expectedResultNoSuccess = new[] { ScanResult.Failure() };
+                ScanResult[] expectedResultSuccess = scanResultsTotal.Select(result => ScanResult.Success(result)).ToArray();
 
                 yield return new object[] { scannersNoSuccess, expectedResultNoSuccess };
                 yield return new object[] { scannersSuccess, expectedResultSuccess };
@@ -87,7 +89,10 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
         private static IScanner GetScanner(bool success, string[] values)
         {
             IScanner scanner = Substitute.For<IScanner>();
-            scanner.Scan().Returns(success ? ScanResult.Success(values) : ScanResult.Failure());
+
+            scanner.GetResult().Returns(success 
+                ? values.Select(value => ScanResult.Success(value)).ToArray() 
+                : new[] { ScanResult.Failure() });
 
             return scanner;
         }

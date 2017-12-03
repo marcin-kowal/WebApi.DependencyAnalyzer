@@ -14,11 +14,12 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
         public void PreprocessTest(
             string text,
             IPreprocessorConfig config,
+            string[] tokens,
             string expectedResult)
         {
             ScanPreprocessor scanPreprocessor = new ScanPreprocessor(config);
 
-            string result = scanPreprocessor.Preprocess(text);
+            string result = scanPreprocessor.Preprocess(text, tokens);
 
             result.Should().Be(expectedResult);
         }
@@ -29,13 +30,14 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             {
                 IPreprocessorConfig config = Substitute.For<IPreprocessorConfig>();
                 config.TrimTokens.Returns(new[] { ' ', '\'' });
-                config.RemoveTokens.Returns(new[] { "IL[0-9a-f]*" });
 
                 string text = "' IL23ab line IL23eg ' ";
 
+                string[] tokens = new[] { "IL[0-9a-f]*" };
+
                 string expectedResult = "line g";
 
-                yield return new object[] { text, config, expectedResult };
+                yield return new object[] { text, config, tokens, expectedResult };
             }
         }
     }

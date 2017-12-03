@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
@@ -24,17 +25,27 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 .ForAll(scanner => scanner.AppendLine(line));
         }
 
-        public ScanResult Scan()
+        public void Scan()
         {
-            ScanResult[] results = _scanners
-                .AsParallel()
-                .Select(scanner => scanner.Scan())
-                .Where(scan => scan.IsSuccess)
-                .ToArray();
+            Parallel.ForEach(_scanners, scanner => scanner.Scan());
+        }
 
-            ScanResult result = results.Any()
-                ? ScanResult.Success(results.SelectMany(res => res.Values).Distinct().ToArray())
-                : ScanResult.Failure();
+        public void Reset()
+        {
+            Parallel.ForEach(_scanners, scanner => scanner.Reset());
+        }
+
+        public IReadOnlyCollection<ScanResult> GetResult()
+        {
+            HashSet<ScanResult> results = new HashSet<ScanResult>(_scanners
+                .AsParallel()
+                .SelectMany(scanner => scanner.GetResult())
+                .Where(scan => scan.IsSuccess)
+                .Select(scan => ScanResult.Success(scan.Value)));
+
+            ScanResult[] result = results.Any()
+                ? results.ToArray()
+                : new[] { ScanResult.Failure() };
 
             return result;
         }

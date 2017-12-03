@@ -22,7 +22,7 @@ namespace WebApi.DependencyAnalyzer.Engine
             _scanner = scanner;
         }
 
-        public string[] Analyze()
+        public IReadOnlyCollection<string> Analyze()
         {
             SortedSet<string> scanResults = new SortedSet<string>();
 
@@ -30,7 +30,7 @@ namespace WebApi.DependencyAnalyzer.Engine
 
             foreach (string file in files)
             {
-                string[] results = AnalyzeFile(file);
+                IReadOnlyCollection<string> results = AnalyzeFile(file);
 
                 foreach (string result in results)
                 {
@@ -41,7 +41,7 @@ namespace WebApi.DependencyAnalyzer.Engine
             return scanResults.ToArray();
         }
 
-        private string[] AnalyzeFile(string file)
+        private IReadOnlyCollection<string> AnalyzeFile(string file)
         {
             List<string> result = new List<string>();
 
@@ -54,16 +54,17 @@ namespace WebApi.DependencyAnalyzer.Engine
                     string line = _decompiler.ReadLine();
 
                     _scanner.AppendLine(line);
-                    ScanResult scanResult = _scanner.Scan();
-
-                    if (scanResult.IsSuccess)
-                    {
-                        result.AddRange(scanResult.Values);
-                    }
+                    _scanner.Scan();
                 }
 
                 _decompiler.Close();
             }
+
+            IReadOnlyCollection<ScanResult> scanResults = _scanner.GetResult();
+
+            result.AddRange(scanResults
+                .Where(scan => scan.IsSuccess)
+                .Select(scan => scan.Value));
 
             return result.ToArray();
         }
