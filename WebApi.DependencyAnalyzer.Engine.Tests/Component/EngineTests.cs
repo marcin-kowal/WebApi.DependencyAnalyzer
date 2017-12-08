@@ -64,7 +64,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "'includeSubdirs': 'false',",
                     "'textSearchPatterns': [ 'api/v1.*' ],",
                     "'textSearchPatternsExclude': [ '/swagger' ],",
-                    "'scanners': [ '" + ScannerMarker + "' ]",
+                    "'scanners': [ " + ScannerMarker + " ]",
                     "},",
                     "],",
                     "'process': {",
@@ -75,11 +75,15 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                 };
 
                 string[] configDataSingleLine = configData
-                    .Select(line => line.Replace(ScannerMarker, SingleLine, StringComparison.OrdinalIgnoreCase))
+                    .Select(line => line.Replace(ScannerMarker, ToJson(SingleLine), StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
                 string[] configDataMultiLine = configData
-                    .Select(line => line.Replace(ScannerMarker, MultiLine, StringComparison.OrdinalIgnoreCase))
+                    .Select(line => line.Replace(ScannerMarker, ToJson(MultiLine), StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+
+                string[] configDataComposite = configData
+                    .Select(line => line.Replace(ScannerMarker, ToJson(MultiLine, SingleLine), StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
                 string[] fileData1 = new[]
@@ -136,13 +140,17 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
 
                 string[] expectedResult3 = new[]
                 {
-                    "api/v1/module-management/bids/{1}/versions/{2}/dashboard/settings/hierarchy/items"
+                    "api/v1/module-management/bids/{0}/versions/{1}/dashboard/settings/hierarchy/items"
                 };
 
                 yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
-                yield return new object[] { configDataMultiLine, fileData1, expectedResult1 };
-                yield return new object[] { configDataMultiLine, fileData2, expectedResult2 };
+                yield return new object[] { configDataSingleLine, fileData2, expectedResult2 };
+
                 yield return new object[] { configDataMultiLine, fileData3, expectedResult3 };
+
+                yield return new object[] { configDataComposite, fileData1, expectedResult1 };
+                yield return new object[] { configDataComposite, fileData2, expectedResult2 };
+                yield return new object[] { configDataComposite, fileData3, expectedResult3 };
             }
         }
 
@@ -160,6 +168,11 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
         private static string DuplicateBackslash(string source)
         {
             return source.Replace(@"\", @"\\", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ToJson(params string[] values)
+        {
+            return string.Join(',', values.Select(v => "\"" + v + "\""));
         }
     }
 }

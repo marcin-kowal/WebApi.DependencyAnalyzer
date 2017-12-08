@@ -5,6 +5,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
     {
         char OperandSeparator { get; }
         string[] InstructionTokens { get; }
+        string[] OperandOperationTokens { get; }
         string[] SimpleOperationTokens { get; }
         string[] MultilineOperationBeginTokens { get; }
         string[] MultilineOperationEndTokens { get; }

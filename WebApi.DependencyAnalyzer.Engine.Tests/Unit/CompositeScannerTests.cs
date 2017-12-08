@@ -60,8 +60,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
         {
             get
             {
-                string[] scanResults1 = new[] { "aaa", "bbb" };
-                string[] scanResults2 = new[] { "ccc" };
+                string[] scanResults1 = new[] { "aaa", "bbbb" };
+                string[] scanResults2 = new[] { "ccccc" };
                 string[] scanResultsTotal = scanResults1
                     .Concat(scanResults2)
                     .ToArray();
@@ -79,7 +79,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 };
 
                 ScanResult[] expectedResultNoSuccess = new[] { ScanResult.Failure() };
-                ScanResult[] expectedResultSuccess = scanResultsTotal.Select(result => ScanResult.Success(result)).ToArray();
+                ScanResult[] expectedResultSuccess = scanResultsTotal
+                    .Select(result => ScanResult.Success(result, result.Length))
+                    .ToArray();
 
                 yield return new object[] { scannersNoSuccess, expectedResultNoSuccess };
                 yield return new object[] { scannersSuccess, expectedResultSuccess };
@@ -91,7 +93,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             IScanner scanner = Substitute.For<IScanner>();
 
             scanner.GetResult().Returns(success 
-                ? values.Select(value => ScanResult.Success(value)).ToArray() 
+                ? values.Select(value => ScanResult.Success(value, value.Length)).ToArray() 
                 : new[] { ScanResult.Failure() });
 
             return scanner;

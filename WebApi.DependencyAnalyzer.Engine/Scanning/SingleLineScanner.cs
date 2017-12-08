@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using WebApi.DependencyAnalyzer.Engine.Common;
 using WebApi.DependencyAnalyzer.Engine.Config;
 
 namespace WebApi.DependencyAnalyzer.Engine.Scanning
@@ -9,27 +11,40 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
     {
         private readonly IScannerConfig _config;
         private readonly IScanPreprocessor _preprocessor;
-        private readonly HashSet<ScanResult> _result;
-        private string _line;
+        private readonly IHashProvider<string> _hashProvider;
+        private readonly HashSet<ScanResult> _results;
 
-        public SingleLineScanner(IScannerConfig config, IScanPreprocessor preprocessor)
+        private Line _line;
+
+        public SingleLineScanner(
+            IScannerConfig config,
+            IScanPreprocessor preprocessor,
+            IHashProvider<string> hashProvider)
         {
             _config = config;
             _preprocessor = preprocessor;
-            _result = new HashSet<ScanResult>();
+            _hashProvider = hashProvider;
+            _results = new HashSet<ScanResult>();
         }
 
-        public void AppendLine(string line)
+        public void AppendLine(string text)
         {
-            line = _preprocessor.Preprocess(line, _config.InstructionTokens);
+            Line line = new Line(_preprocessor.Trim(text), _hashProvider.GetHash(text));
 
-            _line = line;
+            if (TryAppendToCurrentLine(line))
+            {
+                return;
+            }
+
+            text = _preprocessor.Preprocess(line.Text, _config.InstructionTokens);
+
+            _line = new Line(text, line.Hashes);
         }
 
         public void Scan()
         {
             IEnumerable<string> matches = _config.TextSearchPatterns
-                .Select(pattern => new Regex(pattern).Match(_line))
+                .Select(pattern => new Regex(pattern).Match(_line.Text))
                 .Where(match => match.Success)
                 .Select(match => match.Value);
 
@@ -37,23 +52,46 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 .Where(match => !_config.TextSearchPatternsExclude
                     .Any(excludePattern => new Regex(excludePattern).IsMatch(match)));
 
+            foreach (long hash in _line.Hashes)
+            {
+                _results.RemoveWhere(result => result.LineHashes.Contains(hash));
+            }
+
             foreach (string match in matches)
             {
-                _result.Add(ScanResult.Success(match));
+                _results.Add(ScanResult.Success(match, _line.Hashes));
             }
         }
 
         public void Reset()
         {
-            _line = null;
-            _result.Clear();
+            _line = default(Line);
+            _results.Clear();
         }
 
         public IReadOnlyCollection<ScanResult> GetResult()
         {
-            return _result.Any()
-                ? _result.ToArray()
+            return _results.Any()
+                ? _results.ToArray()
                 : new[] { ScanResult.Failure() };
+        }
+
+        private bool TryAppendToCurrentLine(Line line)
+        {
+            string appendToken = _config.AppendTokens
+                .FirstOrDefault(token => line.Text.StartsWith(token, StringComparison.OrdinalIgnoreCase));
+
+            if (appendToken != null)
+            {
+                string text = line.Text.Remove(0, appendToken.Length);
+                text = _preprocessor.TrimStart(text);
+
+                _line = _line.Append(new Line(text, line.Hashes));
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

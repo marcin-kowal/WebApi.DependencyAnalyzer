@@ -44,6 +44,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                     "file1 line1", "file1 line2",
                     "file2 line3"
                 };
+                long[] lineHashes = new long[] { lines[0].Length, lines[1].Length, lines[2].Length };
+
                 IDecompiler decompiler1 = Substitute.For<IDecompiler>();
                 decompiler1.EndOfStream.Returns(endOfStreams[0], endOfStreams.Skip(1).ToArray());
                 decompiler1.ReadLine().Returns(lines[0], lines.Skip(1).ToArray());
@@ -53,13 +55,13 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 
                 IScanner scanner1 = Substitute.For<IScanner>();
                 scanner1.GetResult().Returns(new[] {
-                    ScanResult.Success("line"), ScanResult.Failure(),
-                    ScanResult.Success("line") });
+                    ScanResult.Success("line", lineHashes[0]), ScanResult.Failure(),
+                    ScanResult.Success("line", lineHashes[2]) });
 
                 IScanner scanner2 = Substitute.For<IScanner>();
                 scanner2.GetResult().Returns(new[] {
-                    ScanResult.Success("line1"), ScanResult.Success("line2"),
-                    ScanResult.Success("line3") });
+                    ScanResult.Success("line1", lineHashes[0]), ScanResult.Success("line2", lineHashes[1]),
+                    ScanResult.Success("line3", lineHashes[2]) });
 
                 string[] expectedResult1 = new[] { "line" };
                 string[] expectedResult2 = new[] { "line1", "line2", "line3" };

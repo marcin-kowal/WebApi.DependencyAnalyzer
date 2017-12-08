@@ -9,166 +9,238 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
     internal class MultiLineScanner : IScanner
     {
-        private const int BufferSize = 5;
+        private const int BufferSize = 12;
 
         private readonly IScannerConfig _config;
         private readonly IScanPreprocessor _preprocessor;
-        private readonly LimitedQueue<string> _lines;
+        private readonly IHashProvider<string> _hashProvider;
         private readonly SingleLineScanner _singleLineScanner;
-        private readonly Dictionary<string, IReadOnlyCollection<ScanResult>> _results;
+        private readonly LimitedQueue<Line> _lines;
+        private readonly HashSet<ScanResult> _results;
         private bool _multilineOperationInProgress;
 
-        public MultiLineScanner(IScannerConfig config, IScanPreprocessor preprocessor)
+        public MultiLineScanner(
+            IScannerConfig config, 
+            IScanPreprocessor preprocessor,
+            IHashProvider<string> hashProvider)
         {
             _config = config;
             _preprocessor = preprocessor;
-            _singleLineScanner = new SingleLineScanner(config, preprocessor);
+            _hashProvider = hashProvider;
+            _singleLineScanner = new SingleLineScanner(config, preprocessor, hashProvider);
 
-            _lines = new LimitedQueue<string>(BufferSize);
-            _results = new Dictionary<string, IReadOnlyCollection<ScanResult>>();
+            _lines = new LimitedQueue<Line>(BufferSize);
+            _results = new HashSet<ScanResult>();
         }
 
-        public void AppendLine(string line)
+        public void AppendLine(string text)
         {
-            line = _preprocessor.Trim(line);
+            Line line = new Line(_preprocessor.TrimStart(text), _hashProvider.GetHash(text));
 
             if (TryAppendToLastLine(line))
             {
-                if (line.Contains(_config.MultilineOperationEndTokens))
-                {
-                    _multilineOperationInProgress = false;
-                }
+                TryFinishMultilineOperation(line);
 
                 return;
             }
 
-            if (line.StartsWith(_config.InstructionTokens))
+            if (line.Text.StartsWithAny(_config.InstructionTokens))
             {
-                line = _preprocessor.Preprocess(line, _config.InstructionTokens);
+                text = _preprocessor.Preprocess(line.Text, _config.InstructionTokens);
+                line = new Line(text, line.Hashes);
 
-                if (line.StartsWith(_config.SimpleOperationTokens))
-                {
-                    _lines.Enqueue(line);
-                }
-                else if (line.Contains(_config.MultilineOperationBeginTokens))
-                {
-                    _multilineOperationInProgress = true;
-                    _lines.Enqueue(line);
-                }
+                _lines.Enqueue(line);
+
+                TryStartMultilineOperation(line);
+                TryFinishMultilineOperation(line);
             }
         }
 
-        public void Scan()
-        {
-            string[] lines = _lines.ToArray();
-
-            foreach (string line in lines)
-            {
-                if (_results.ContainsKey(line))
-                {
-                    continue;
-                }
-
-                _singleLineScanner.Reset();
-                _singleLineScanner.AppendLine(line);
-                _singleLineScanner.Scan();
-                IReadOnlyCollection<ScanResult> result = _singleLineScanner.GetResult();
-
-                if (result.Any(res => res.IsSuccess))
-                {
-                    _results.Add(line, result.Where(res => res.IsSuccess).ToArray());
-                }
-            }
-
-            if (!_multilineOperationInProgress && lines.Any())
-            {
-                int multilineOperationLineIndex = Array.FindLastIndex(lines,
-                    line => line.Contains(_config.MultilineOperationBeginTokens));
-
-                if (multilineOperationLineIndex >= 0)
-                {
-                    string multilineOperationLine = lines[multilineOperationLineIndex];
-
-                    int numberOfOperands = 1 + multilineOperationLine
-                        .Count(chr => chr == _config.OperandSeparator);
-
-                    if (multilineOperationLineIndex < numberOfOperands)
-                    {
-                        throw new InvalidOperationException("Not enough operands for multiline operation. Buffer too small. " +
-                            $"Number of available operands: {multilineOperationLineIndex}. Number of operation arguments: {numberOfOperands}.");
-                    }
-
-                    IEnumerable<string> operandLines = lines
-                        .Take(multilineOperationLineIndex)
-                        .Reverse()
-                        .Take(numberOfOperands)
-                        .Reverse();
-
-                    foreach (string operandLine in operandLines)
-                    {
-                        _results.Remove(operandLine);
-                    }
-
-                    operandLines = operandLines
-                        .Select((line, index) => line.StartsWith("ldstr", StringComparison.Ordinal) 
-                            ? _preprocessor.Preprocess(line, _config.SimpleOperationTokens)
-                            : $"{{{index - 1}}}");
-
-                    string result = string.Format(CultureInfo.InvariantCulture, operandLines.First(), operandLines.Skip(1).ToArray());
-
-                    _results.Add(multilineOperationLine, new[] { ScanResult.Success(result) });
-                }
-            }
-        }
-
-        private bool TryAppendToLastLine(string text)
+        private bool TryAppendToLastLine(Line line)
         {
             if (_multilineOperationInProgress)
             {
-                AppendToLastLine(text);
+                AppendToLastLine(line);
                 return true;
             }
 
             string appendToken = _config.AppendTokens
-                .FirstOrDefault(token => text.StartsWith(token, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(token => line.Text.StartsWith(token, StringComparison.OrdinalIgnoreCase));
 
             if (appendToken != null)
             {
-                text = text.Remove(0, appendToken.Length);
+                string text = line.Text.Remove(0, appendToken.Length);
                 text = _preprocessor.TrimStart(text);
 
-                AppendToLastLine(text);
+                AppendToLastLine(new Line(text, line.Hashes));
+
                 return true;
             }
 
             return false;
         }
 
-        private void AppendToLastLine(string text)
+        private void AppendToLastLine(Line line)
         {
-            string lastLine = _lines.Unenqueue();
+            Line lastLine = _lines.Unenqueue();
 
-            if (!string.IsNullOrEmpty(lastLine))
+            if (!string.IsNullOrEmpty(lastLine.Text))
             {
-                _results.Remove(lastLine);
-                _lines.Enqueue(lastLine.Append(text));
+                Line newLine = lastLine.Append(line);
+
+                _lines.Enqueue(newLine);
+            }
+        }
+
+        private bool TryStartMultilineOperation(Line line)
+        {
+            if (line.Text.ContainsAny(_config.MultilineOperationBeginTokens))
+            {
+                _multilineOperationInProgress = true;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryFinishMultilineOperation(Line line)
+        {
+            if (line.Text.ContainsAny(_config.MultilineOperationEndTokens))
+            {
+                _multilineOperationInProgress = false;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public void Scan()
+        {
+            Line[] lines = _lines.ToArray();
+
+            if (!_multilineOperationInProgress)
+            {
+                (int? lineIndex, Line line) multilineOperation = TryGetMultilineOperation(lines);
+
+                if (multilineOperation.lineIndex >= 0 && multilineOperation.line != null)
+                {
+                    IReadOnlyCollection<Line> operandLines = GetMultilineOperands(
+                        lines,
+                        multilineOperation.lineIndex.Value,
+                        multilineOperation.line);
+
+                    long[] operandLineHashes = operandLines
+                        .SelectMany(line => line.Hashes)
+                        .Distinct()
+                        .ToArray();
+
+                    string completeLine = BuildCompleteLine(operandLines);
+                    IReadOnlyCollection<ScanResult> scanResults = RunSingleLineScanner(completeLine);
+
+                    UpdateResults(_results, scanResults, operandLineHashes);
+                }
+            }
+        }
+
+        private (int? lineIndex, Line line) TryGetMultilineOperation(Line[] lines)
+        {
+            if (lines.Any())
+            {
+                int lineIndex = Array.FindLastIndex(lines,
+                    l => l.Text.ContainsAny(_config.MultilineOperationBeginTokens));
+
+                if (lineIndex >= 0)
+                {
+                    Line line = lines[lineIndex];
+
+                    return (lineIndex, line);
+                }
+            }
+
+            return (null, null);
+        }
+
+        private IReadOnlyCollection<Line> GetMultilineOperands(
+            Line[] lines, 
+            int multilineOperationLineIndex,
+            Line multilineOperationLine)
+        {
+            int numberOfOperands = 1 
+                + multilineOperationLine.Text.Count(chr => chr == _config.OperandSeparator);
+
+            if (multilineOperationLineIndex < numberOfOperands)
+            {
+                throw new InvalidOperationException("Not enough operands for multiline operation. Buffer too small. " +
+                    $"Number of available operands: {multilineOperationLineIndex}. Number of operation arguments: {numberOfOperands}.");
+            }
+
+            Line[] operandLines = lines
+                .Take(multilineOperationLineIndex)
+                .Reverse()
+                .Where(line => line.Text.StartsWithAny(_config.SimpleOperationTokens))
+                .Take(numberOfOperands)
+                .Reverse()
+                .ToArray();
+
+            return operandLines;
+        }
+
+        private string BuildCompleteLine(IReadOnlyCollection<Line> operandLines)
+        {
+            int index = 0;
+
+            IEnumerable<string> operands = operandLines
+                .Select((line) => line.Text.StartsWithAny(_config.OperandOperationTokens)
+                    ? _preprocessor.Preprocess(line.Text, _config.SimpleOperationTokens)
+                    : $"{{{index++}}}");
+
+            string completeLine = string.Format(CultureInfo.InvariantCulture, operands.First(), operands.Skip(1).ToArray());
+
+            return completeLine;
+        }
+
+        private IReadOnlyCollection<ScanResult> RunSingleLineScanner(string line)
+        {
+            _singleLineScanner.AppendLine(line);
+
+            _singleLineScanner.Scan();
+
+            IReadOnlyCollection<ScanResult> results = _singleLineScanner.GetResult()
+                .Where(result => result.IsSuccess)
+                .ToArray();
+
+            return results;
+        }
+
+        private void UpdateResults(
+            HashSet<ScanResult> resultsToUpdate, 
+            IReadOnlyCollection<ScanResult> scanResults,
+            long[] lineHashes)
+        {
+            foreach (long hash in lineHashes)
+            {
+                resultsToUpdate.RemoveWhere(result => result.LineHashes.Contains(hash));
+            }
+
+            foreach (ScanResult result in scanResults)
+            {
+                resultsToUpdate.Add(ScanResult.Success(result.Value, lineHashes));
             }
         }
 
         public void Reset()
         {
             _lines.Clear();
-            _singleLineScanner.Reset();
             _results.Clear();
         }
 
         public IReadOnlyCollection<ScanResult> GetResult()
         {
-            IReadOnlyCollection<ScanResult> result = new HashSet<ScanResult>(_results.Values
-                .SelectMany(value => value))
-                .ToArray();
-
-            return result;
+            return _results.Any()
+                ? _results.ToArray()
+                : new[] { ScanResult.Failure() };
         }
     }
 }

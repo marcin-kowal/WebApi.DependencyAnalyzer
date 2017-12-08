@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using WebApi.DependencyAnalyzer.Engine.Common;
 using WebApi.DependencyAnalyzer.Engine.Config;
 using WebApi.DependencyAnalyzer.Engine.Decompilation;
 using WebApi.DependencyAnalyzer.Engine.FileSystem;
@@ -59,6 +60,7 @@ namespace WebApi.DependencyAnalyzer.Engine
         private IScanner CreateScanner(IConfigItem config)
         {
             IScanPreprocessor preprocessor = CreateScanPreprocessor(config);
+            IHashProvider<string> hashProvider = CreateHashProvider();
 
             string scannerNamespace = typeof(IScanner).Namespace;
 
@@ -68,7 +70,7 @@ namespace WebApi.DependencyAnalyzer.Engine
                 .ToArray();
 
             IScanner[] scanners = scannerTypes
-                .Select(scannerType => (IScanner)Activator.CreateInstance(scannerType, config, preprocessor))
+                .Select(scannerType => (IScanner)Activator.CreateInstance(scannerType, config, preprocessor, hashProvider))
                 .ToArray();
 
             if (scanners.Length > 1)
@@ -94,6 +96,11 @@ namespace WebApi.DependencyAnalyzer.Engine
         private IScanPreprocessor CreateScanPreprocessor(IPreprocessorConfig config)
         {
             return new ScanPreprocessor(config);
+        }
+
+        private IHashProvider<string> CreateHashProvider()
+        {
+            return new HashProvider();
         }
     }
 }
