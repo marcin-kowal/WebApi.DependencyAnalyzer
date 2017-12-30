@@ -31,6 +31,5 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 yield return new object[] { firstLine, secondLine, expectedResult };
             }
         }
-
     }
 }
