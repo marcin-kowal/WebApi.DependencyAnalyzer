@@ -32,11 +32,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             Parallel.ForEach(_scanners, scanner => scanner.Scan());
         }
 
-        public void Reset()
-        {
-            Parallel.ForEach(_scanners, scanner => scanner.Reset());
-        }
-
         public IReadOnlyCollection<ScanResult> GetResult()
         {
             HashSet<ScanResult> results = new HashSet<ScanResult>();

@@ -6,7 +6,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
     {
         void AppendLine(string line);
         void Scan();
-        void Reset();
         IReadOnlyCollection<ScanResult> GetResult();
     }
 }

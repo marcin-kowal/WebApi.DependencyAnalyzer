@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace WebApi.DependencyAnalyzer.Engine.Common
 {
-    public static class StringOperations
+    public static class StringExtensions
     {
         public static bool StartsWithAny(this string text, params string[] tokens) => tokens
             .Any(token => new Regex($"^{token}").IsMatch(text));

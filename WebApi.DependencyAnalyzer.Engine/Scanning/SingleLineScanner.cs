@@ -63,12 +63,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             }
         }
 
-        public void Reset()
-        {
-            _line = default(Line);
-            _results.Clear();
-        }
-
         public IReadOnlyCollection<ScanResult> GetResult()
         {
             return _results.Any()
