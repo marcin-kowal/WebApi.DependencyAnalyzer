@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using WebApi.DependencyAnalyzer.Engine.Common;
 using Xunit;
 
-namespace WebApi.DependencyAnalyzer.Engine.Tests.Common
+namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 {
     public class HashProviderTests
     {

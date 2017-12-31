@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WebApi.DependencyAnalyzer.Engine.Tests.Common;
+using WebApi.DependencyAnalyzer.Engine.Tests.Helpers;
 using Xunit;
 
 namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
@@ -15,10 +15,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
         private const string ScannerMarker = Marker + "SCANNER" + Marker;
         private const string SingleLine = "SingleLine";
         private const string MultiLine = "MultiLine";
-
-        //private const string IldasmPath = "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\ildasm.exe";
-        //private string IldasmCommand => "\\\"" + DuplicateBackslash(IldasmPath) + "\\\"\",";
-        //private const string IldasmArguments = "/text \\\"{0}\\\" /unicode /metadata";
 
         private const string CmdTypeCommand = "cmd";
         private const string CmdTypeArguments = "/k type {0} & exit";

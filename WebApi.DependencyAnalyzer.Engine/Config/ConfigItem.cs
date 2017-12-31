@@ -7,7 +7,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
         private const char _operandSeparator = ',';
         private static readonly string[] _instructionTokens = new[] { "IL_[0-9a-fA-F]+:" };
         private static readonly string[] _operandOperationTokens = new[] { "ldstr" };
-        private static readonly string[] _simpleOperationTokens = new[] { "ldstr", "ldfld" };
+        private static readonly string[] _simpleOperationTokens = new[] { "ldstr", "ldfld", "ldc" };
         private static readonly string[] _multilineOperationBeginTokens = new[] { @"System.String::Format\(" };
         private static readonly string[] _multilineOperationEndTokens = new[] { @"\)" };
         private static readonly char[] _trimTokens = new[] { ' ', '\'', '"' };
