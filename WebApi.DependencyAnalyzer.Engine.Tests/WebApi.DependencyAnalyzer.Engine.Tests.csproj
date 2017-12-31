@@ -21,4 +21,8 @@
     <ProjectReference Include="..\WebApi.DependencyAnalyzer.Engine\WebApi.DependencyAnalyzer.Engine.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Integration\" />
+  </ItemGroup>
+
 </Project>

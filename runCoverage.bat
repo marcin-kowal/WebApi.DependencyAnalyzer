@@ -11,6 +11,10 @@ SET coveragefile=coverage.xml
 SET coveragedir=Coverage 
 SET searchdir=WebApi.DependencyAnalyzer.Engine.Tests/bin/Debug/netcoreapp2.0
 
+REM delete old results
+del %coveragefile%
+rmdir /s /q %coveragedir%
+
 REM Run code coverage analysis  
 %opencover% -target:%dotnet% -targetargs:%targetargs% -output:%coveragefile% -filter:%filter% -searchdirs:%searchdir% -oldStyle -register:user -mergeoutput -hideskipped:File 
 
