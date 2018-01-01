@@ -1,0 +1,17 @@
+﻿{
+  'items': [
+    {
+      "directories": [ "##DIR##" ],
+      "fileNamePatterns": [ "##FILE##" ],
+      "fileNamePatternsExclude": [],
+      "includeSubdirs": "false",
+      "textSearchPatterns": [ "api/v1.*" ],
+      "textSearchPatternsExclude": [ "/swagger" ],
+      "scanners": [ "MultiLine", "SingleLine" ]
+    }
+  ],
+  'process': {
+    "command": "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.6.1 Tools\\ildasm.exe",
+    "arguments": "/text \"{0}\" /unicode"
+  }
+}

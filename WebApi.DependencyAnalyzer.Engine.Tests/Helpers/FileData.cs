@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace WebApi.DependencyAnalyzer.Engine.Tests.Common
+namespace WebApi.DependencyAnalyzer.Engine.Tests.Helpers
 {
     internal sealed class FileData : IDisposable
     {
