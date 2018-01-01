@@ -9,6 +9,17 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
     internal class MultiLineScanner : IScanner
     {
+        private static class Parameters
+        {
+            public const char OperandSeparator = ',';
+            public static readonly string[] AppendTokens = new[] { "+" };
+            public static readonly string[] InstructionTokens = new[] { "IL_[0-9a-fA-F]+:" };
+            public static readonly string[] MultilineOperationBeginTokens = new[] { @"System.String::Format\(" };
+            public static readonly string[] MultilineOperationEndTokens = new[] { @"\)" };
+            public static readonly string[] OperandOperationTokens = new[] { "ldstr" };
+            public static readonly string[] SimpleOperationTokens = new[] { "ldstr", "ldfld", "ldc" };
+        }
+
         private const int BufferSize = 12;
 
         private readonly IScannerConfig _config;
@@ -44,9 +55,9 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 return;
             }
 
-            if (line.Text.StartsWithAny(_config.InstructionTokens))
+            if (line.Text.StartsWithAny(Parameters.InstructionTokens))
             {
-                text = _preprocessor.Preprocess(line.Text, _config.InstructionTokens);
+                text = _preprocessor.Preprocess(line.Text, Parameters.InstructionTokens);
                 line = new Line(text, line.Hashes);
 
                 _lines.Push(line);
@@ -64,7 +75,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 return true;
             }
 
-            string appendToken = _config.AppendTokens
+            string appendToken = Parameters.AppendTokens
                 .FirstOrDefault(token => line.Text.StartsWith(token, StringComparison.OrdinalIgnoreCase));
 
             if (appendToken != null)
@@ -94,7 +105,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         private bool TryStartMultilineOperation(Line line)
         {
-            if (line.Text.ContainsAny(_config.MultilineOperationBeginTokens))
+            if (line.Text.ContainsAny(Parameters.MultilineOperationBeginTokens))
             {
                 _multilineOperationInProgress = true;
 
@@ -106,7 +117,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         private bool TryFinishMultilineOperation(Line line)
         {
-            if (line.Text.ContainsAny(_config.MultilineOperationEndTokens))
+            if (line.Text.ContainsAny(Parameters.MultilineOperationEndTokens))
             {
                 _multilineOperationInProgress = false;
 
@@ -149,7 +160,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             if (lines.Any())
             {
                 int lineIndex = Array.FindLastIndex(lines,
-                    l => l.Text.ContainsAny(_config.MultilineOperationBeginTokens));
+                    l => l.Text.ContainsAny(Parameters.MultilineOperationBeginTokens));
 
                 if (lineIndex >= 0)
                 {
@@ -168,7 +179,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             Line multilineOperationLine)
         {
             int numberOfOperands = 1 
-                + multilineOperationLine.Text.Count(chr => chr == _config.OperandSeparator);
+                + multilineOperationLine.Text.Count(chr => chr == Parameters.OperandSeparator);
 
             if (multilineOperationLineIndex < numberOfOperands)
             {
@@ -179,7 +190,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             Line[] operandLines = lines
                 .Take(multilineOperationLineIndex)
                 .Reverse()
-                .Where(line => line.Text.StartsWithAny(_config.SimpleOperationTokens))
+                .Where(line => line.Text.StartsWithAny(Parameters.SimpleOperationTokens))
                 .Take(numberOfOperands)
                 .Reverse()
                 .ToArray();
@@ -192,8 +203,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             int index = 0;
 
             IEnumerable<string> operands = operandLines
-                .Select((line) => line.Text.StartsWithAny(_config.OperandOperationTokens)
-                    ? _preprocessor.Preprocess(line.Text, _config.SimpleOperationTokens)
+                .Select((line) => line.Text.StartsWithAny(Parameters.OperandOperationTokens)
+                    ? _preprocessor.Preprocess(line.Text, Parameters.SimpleOperationTokens)
                     : $"{{{index++}}}");
 
             string completeLine = string.Format(CultureInfo.InvariantCulture, operands.First(), operands.Skip(1).ToArray());

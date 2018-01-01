@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using WebApi.DependencyAnalyzer.Engine.Config;
 
 namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
     public class ScanPreprocessor : IScanPreprocessor
     {
-        private readonly IPreprocessorConfig _config;
-
-        public ScanPreprocessor(IPreprocessorConfig config)
+        private static class Parameters
         {
-            _config = config;
+            public static readonly char[] TrimTokens = new[] { ' ', '\'', '"' };
         }
+
+        public ScanPreprocessor()
+        { }
 
         public string Preprocess(string text, IReadOnlyCollection<string> tokensToRemove)
         {
@@ -29,17 +29,17 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         public string TrimStart(string text)
         {
-            return text.TrimStart(_config.TrimTokens);
+            return text.TrimStart(Parameters.TrimTokens);
         }
 
         public string TrimEnd(string text)
         {
-            return text.TrimEnd(_config.TrimTokens);
+            return text.TrimEnd(Parameters.TrimTokens);
         }
 
         public string Trim(string text)
         {
-            return text.Trim(_config.TrimTokens);
+            return text.Trim(Parameters.TrimTokens);
         }
     }
 }

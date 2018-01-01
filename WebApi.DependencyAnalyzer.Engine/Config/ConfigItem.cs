@@ -4,15 +4,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
 {
     public class ConfigItem : IConfigItem
     {
-        private const char _operandSeparator = ',';
-        private static readonly string[] _instructionTokens = new[] { "IL_[0-9a-fA-F]+:" };
-        private static readonly string[] _operandOperationTokens = new[] { "ldstr" };
-        private static readonly string[] _simpleOperationTokens = new[] { "ldstr", "ldfld", "ldc" };
-        private static readonly string[] _multilineOperationBeginTokens = new[] { @"System.String::Format\(" };
-        private static readonly string[] _multilineOperationEndTokens = new[] { @"\)" };
-        private static readonly char[] _trimTokens = new[] { ' ', '\'', '"' };
-        private static readonly string[] _appendTokens = new[] { "+" };
-
         public ConfigItem(
             string[] directories,
             string[] fileNamePatterns,
@@ -30,15 +21,6 @@ namespace WebApi.DependencyAnalyzer.Engine.Config
             TextSearchPatternsExclude = textSearchPatternsExclude;
             Scanners = scanners;
         }
-
-        public char OperandSeparator { get; } = _operandSeparator;
-        public string[] InstructionTokens { get; } = _instructionTokens;
-        public string[] OperandOperationTokens { get; } = _operandOperationTokens;
-        public string[] SimpleOperationTokens { get; } = _simpleOperationTokens;
-        public string[] MultilineOperationBeginTokens { get; } = _multilineOperationBeginTokens;
-        public string[] MultilineOperationEndTokens { get; } = _multilineOperationEndTokens;
-        public char[] TrimTokens { get; } = _trimTokens;
-        public string[] AppendTokens { get; } = _appendTokens;
 
         [JsonProperty("directories")]
         public string[] Directories { get; }

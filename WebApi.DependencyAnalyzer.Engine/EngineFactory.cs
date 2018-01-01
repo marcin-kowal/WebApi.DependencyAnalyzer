@@ -59,7 +59,7 @@ namespace WebApi.DependencyAnalyzer.Engine
 
         private IScanner CreateScanner(IConfigItem config)
         {
-            IScanPreprocessor preprocessor = CreateScanPreprocessor(config);
+            IScanPreprocessor preprocessor = CreateScanPreprocessor();
             IHashProvider<string> hashProvider = CreateHashProvider();
 
             string scannerNamespace = typeof(IScanner).Namespace;
@@ -93,9 +93,9 @@ namespace WebApi.DependencyAnalyzer.Engine
             throw new ArgumentOutOfRangeException(nameof(config.Scanners));
         }
 
-        private IScanPreprocessor CreateScanPreprocessor(IPreprocessorConfig config)
+        private IScanPreprocessor CreateScanPreprocessor()
         {
-            return new ScanPreprocessor(config);
+            return new ScanPreprocessor();
         }
 
         private IHashProvider<string> CreateHashProvider()
