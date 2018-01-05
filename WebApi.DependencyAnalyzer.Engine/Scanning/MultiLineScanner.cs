@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using WebApi.DependencyAnalyzer.Engine.Common;
 using WebApi.DependencyAnalyzer.Engine.Config;
 
 namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
-    internal class MultiLineScanner : IScanner
+    internal abstract class MultiLineScanner : IScanner
     {
-        private const int BufferSize = 12;
-
-        private readonly IScannerConfig _config;
-        private readonly IScanPreprocessor _preprocessor;
-        private readonly IHashProvider<string> _hashProvider;
-        private readonly SingleLineScanner _singleLineScanner;
-        private readonly LimitedStack<Line> _lines;
-        private readonly HashSet<ScanResult> _results;
-        private bool _multilineOperationInProgress;
+        protected readonly IScannerConfig _config;
+        protected readonly IScanPreprocessor _preprocessor;
+        protected readonly IHashProvider<string> _hashProvider;
+        protected readonly SingleLineScanner _singleLineScanner;
+        protected readonly LimitedStack<Line> _lines;
+        protected readonly HashSet<ScanResult> _results;
+        protected bool _multilineOperationInProgress;
 
         public MultiLineScanner(
-            IScannerConfig config, 
+            IScannerConfig config,
             IScanPreprocessor preprocessor,
             IHashProvider<string> hashProvider)
         {
@@ -33,6 +30,15 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             _results = new HashSet<ScanResult>();
         }
 
+        protected abstract int BufferSize { get; }
+        protected abstract char OperandSeparator { get; }
+        protected abstract string[] InstructionTokens { get; }
+        protected abstract string[] SimpleOperationTokens { get; }
+        protected abstract string[] OperandOperationTokens { get; }
+        protected abstract string[] AppendTokens { get; }
+        protected abstract string[] MultilineOperationBeginTokens { get; }
+        protected abstract string[] MultilineOperationEndTokens { get; }
+
         public void AppendLine(string text)
         {
             Line line = new Line(_preprocessor.TrimStart(text), _hashProvider.GetHash(text));
@@ -44,34 +50,34 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 return;
             }
 
-            if (line.Text.StartsWithAny(_config.InstructionTokens))
+            if (line.Text.StartsWithAny(InstructionTokens))
             {
-                text = _preprocessor.Preprocess(line.Text, _config.InstructionTokens);
-                line = new Line(text, line.Hashes);
+                text = PrepareToPush(line.Text);
 
-                _lines.Push(line);
+                _lines.Push(new Line(text, line.Hashes));
 
                 TryStartMultilineOperation(line);
                 TryFinishMultilineOperation(line);
             }
         }
 
+        protected abstract string PrepareToPush(string text);
+
         private bool TryAppendToLastLine(Line line)
         {
             if (_multilineOperationInProgress)
             {
-                AppendToLastLine(line);
+                string text = PrepareToAppend(line.Text);
+                AppendToLastLine(new Line(text, line.Hashes));
                 return true;
             }
 
-            string appendToken = _config.AppendTokens
+            string appendToken = AppendTokens
                 .FirstOrDefault(token => line.Text.StartsWith(token, StringComparison.OrdinalIgnoreCase));
 
             if (appendToken != null)
             {
-                string text = line.Text.Remove(0, appendToken.Length);
-                text = _preprocessor.TrimStart(text);
-
+                string text = PrepareToAppend(line.Text, appendToken);
                 AppendToLastLine(new Line(text, line.Hashes));
 
                 return true;
@@ -79,6 +85,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
             return false;
         }
+
+        protected abstract string PrepareToAppend(string text, string appendToken = null);
 
         private void AppendToLastLine(Line line)
         {
@@ -94,7 +102,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         private bool TryStartMultilineOperation(Line line)
         {
-            if (line.Text.ContainsAny(_config.MultilineOperationBeginTokens))
+            if (line.Text.ContainsAny(MultilineOperationBeginTokens))
             {
                 _multilineOperationInProgress = true;
 
@@ -106,7 +114,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         private bool TryFinishMultilineOperation(Line line)
         {
-            if (line.Text.ContainsAny(_config.MultilineOperationEndTokens))
+            if (line.Text.ContainsAny(MultilineOperationEndTokens))
             {
                 _multilineOperationInProgress = false;
 
@@ -149,7 +157,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             if (lines.Any())
             {
                 int lineIndex = Array.FindLastIndex(lines,
-                    l => l.Text.ContainsAny(_config.MultilineOperationBeginTokens));
+                    l => l.Text.ContainsAny(MultilineOperationBeginTokens));
 
                 if (lineIndex >= 0)
                 {
@@ -162,44 +170,12 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             return (null, null);
         }
 
-        private IReadOnlyCollection<Line> GetMultilineOperands(
-            Line[] lines, 
+        protected abstract IReadOnlyCollection<Line> GetMultilineOperands(
+            IReadOnlyCollection<Line> lines,
             int multilineOperationLineIndex,
-            Line multilineOperationLine)
-        {
-            int numberOfOperands = 1 
-                + multilineOperationLine.Text.Count(chr => chr == _config.OperandSeparator);
+            Line multilineOperationLine);
 
-            if (multilineOperationLineIndex < numberOfOperands)
-            {
-                throw new InvalidOperationException("Not enough operands for multiline operation. Buffer too small. " +
-                    $"Number of available operands: {multilineOperationLineIndex}. Number of operation arguments: {numberOfOperands}.");
-            }
-
-            Line[] operandLines = lines
-                .Take(multilineOperationLineIndex)
-                .Reverse()
-                .Where(line => line.Text.StartsWithAny(_config.SimpleOperationTokens))
-                .Take(numberOfOperands)
-                .Reverse()
-                .ToArray();
-
-            return operandLines;
-        }
-
-        private string BuildCompleteLine(IReadOnlyCollection<Line> operandLines)
-        {
-            int index = 0;
-
-            IEnumerable<string> operands = operandLines
-                .Select((line) => line.Text.StartsWithAny(_config.OperandOperationTokens)
-                    ? _preprocessor.Preprocess(line.Text, _config.SimpleOperationTokens)
-                    : $"{{{index++}}}");
-
-            string completeLine = string.Format(CultureInfo.InvariantCulture, operands.First(), operands.Skip(1).ToArray());
-
-            return completeLine;
-        }
+        protected abstract string BuildCompleteLine(IReadOnlyCollection<Line> operandLines);
 
         private IReadOnlyCollection<ScanResult> RunSingleLineScanner(string line)
         {
@@ -215,7 +191,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
         }
 
         private void UpdateResults(
-            HashSet<ScanResult> resultsToUpdate, 
+            HashSet<ScanResult> resultsToUpdate,
             IReadOnlyCollection<ScanResult> scanResults,
             long[] lineHashes)
         {

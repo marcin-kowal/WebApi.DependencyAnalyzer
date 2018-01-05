@@ -15,13 +15,21 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Integration
             9);
 
         [Display(Description = "api/v1/module/bid/{0}/user/{1}/personal/settings")]
-        private int Method()
+        private int Method1()
         {
             string hierarchyItemsApiRoute = "api/v1/module-management/bids/"
                 + "{0}/{1}/versions/{2}/dashboard/settings/hierarchy/"
                 + "items";
 
-            return hierarchyItemsApiRoute.Length;
+            return hierarchyItemsApiRoute.Length + HierarchyApiRoute.Length;
         }
+
+        [Display(Description = DashboardSettingsApiRoute)]
+        private void Method2()
+        { }
+
+        [Display(Description = SwaggerApiRoute)]
+        private void Method3()
+        { }
     }
 }

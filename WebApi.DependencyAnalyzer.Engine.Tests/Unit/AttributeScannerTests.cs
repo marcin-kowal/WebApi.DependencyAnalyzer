@@ -9,17 +9,17 @@ using Xunit;
 
 namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 {
-    public class SingleLineScannerTests
+    public class AttributeScannerTests
     {
         [Theory]
         [MemberData(nameof(ScanData))]
         public void ScanTest(
-            IScannerConfig config, 
+            IScannerConfig config,
             IHashProvider<string> hashProvider,
-            string[] lines, 
+            string[] lines,
             ScanResult[] expectedResult)
         {
-            SingleLineScanner scanner = new SingleLineScanner(config, new ScanPreprocessor(), hashProvider);
+            AttributeScanner scanner = new AttributeScanner(config, new ScanPreprocessor(), hashProvider);
 
             foreach (string line in lines)
             {
@@ -38,10 +38,13 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             {
                 string[] textSearchPatterns = new[] { "xt.*", ".* to" };
 
-                string line = " line: text to search ' ";
-                string[] lines = new[] { " line: text to s", "+ earch ' " };
+                string[] lines = new[]
+                {
+                    "MyAttribute ( // line: tex",
+                    "00 // t to s",
+                    "1A) // earch)"
+                };
 
-                long lineHash = line.Length;
                 long[] linesHashes = lines
                     .Select(l => (long)l.Length)
                     .ToArray();
@@ -54,39 +57,28 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 IScannerConfig configFailure = CreateScannerConfig(textSearchPatterns, new[] { "xt" });
 
                 ScanResult[] expectedResultSuccess = new[] { "xt to search", "line: text to" }
-                    .Select(result => ScanResult.Success(result, lineHash))
-                    .ToArray();
-                ScanResult[] expectedResultPartialSuccess = new[] { ScanResult.Success("xt to search", lineHash) };
-                ScanResult[] expectedResultFailure = new[] { ScanResult.Failure() };
-
-                ScanResult[] expectedResultSuccessLines = new[] { "xt to search", "line: text to" }
                     .Select(result => ScanResult.Success(result, linesHashes))
                     .ToArray();
-                ScanResult[] expectedResultPartialSuccessLines = new[] { ScanResult.Success("xt to search", linesHashes) };
+                ScanResult[] expectedResultPartialSuccess = new[] { ScanResult.Success("xt to search", linesHashes) };
+                ScanResult[] expectedResultFailure = new[] { ScanResult.Failure() };
 
-                yield return new object[] { configSuccess, hashProvider, new[] { line }, expectedResultSuccess };
-                yield return new object[] { configPartialSuccess, hashProvider, new[] { line }, expectedResultPartialSuccess };
-                yield return new object[] { configFailure, hashProvider, new[] { line }, expectedResultFailure };
-
-                yield return new object[] { configSuccess, hashProvider, lines, expectedResultSuccessLines };
-                yield return new object[] { configPartialSuccess, hashProvider, lines, expectedResultPartialSuccessLines };
+                yield return new object[] { configSuccess, hashProvider, lines, expectedResultSuccess };
+                yield return new object[] { configPartialSuccess, hashProvider, lines, expectedResultPartialSuccess };
                 yield return new object[] { configFailure, hashProvider, lines, expectedResultFailure };
             }
         }
 
         private static IScannerConfig CreateScannerConfig(
-            string[] textSearchPatterns, 
+            string[] textSearchPatterns,
             string[] textSearchPatternsExclude = null)
         {
-            IScannerConfig scannerConfig = Substitute.For<IScannerConfig>();
-            scannerConfig.TextSearchPatterns.Returns(textSearchPatterns);
+            IScannerConfig config = Substitute.For<IScannerConfig>();
+            config.TextSearchPatterns.Returns(textSearchPatterns);
 
             if (textSearchPatternsExclude != null)
-            {
-                scannerConfig.TextSearchPatternsExclude.Returns(textSearchPatternsExclude);
-            }
+                config.TextSearchPatternsExclude.Returns(textSearchPatternsExclude);
 
-            return scannerConfig;
+            return config;
         }
     }
 }

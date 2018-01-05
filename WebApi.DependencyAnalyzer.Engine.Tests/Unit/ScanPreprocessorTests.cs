@@ -1,7 +1,5 @@
 ﻿using FluentAssertions;
-using NSubstitute;
 using System.Collections.Generic;
-using WebApi.DependencyAnalyzer.Engine.Config;
 using WebApi.DependencyAnalyzer.Engine.Scanning;
 using Xunit;
 
@@ -9,15 +7,16 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 {
     public class ScanPreprocessorTests
     {
+        // TODO extend tests for Trim..()
+
         [Theory]
         [MemberData(nameof(PreprocessData))]
         public void PreprocessTest(
             string text,
-            IPreprocessorConfig config,
             string[] tokens,
             string expectedResult)
         {
-            ScanPreprocessor scanPreprocessor = new ScanPreprocessor(config);
+            ScanPreprocessor scanPreprocessor = new ScanPreprocessor();
 
             string result = scanPreprocessor.Preprocess(text, tokens);
 
@@ -28,16 +27,13 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
         {
             get
             {
-                IPreprocessorConfig config = Substitute.For<IPreprocessorConfig>();
-                config.TrimTokens.Returns(new[] { ' ', '\'' });
-
                 string text = "' IL23ab line IL23eg ' ";
 
                 string[] tokens = new[] { "IL[0-9a-f]*" };
 
                 string expectedResult = "line g";
 
-                yield return new object[] { text, config, tokens, expectedResult };
+                yield return new object[] { text, tokens, expectedResult };
             }
         }
     }

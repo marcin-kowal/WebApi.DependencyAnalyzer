@@ -31,7 +31,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Integration
 
             using (FileData assemblyFile = FileData.Create(Array.Empty<string>()))
             {
-                Compiler.Run(assemblyFile.FilePath, TestClassPath);
+                InstantCompiler.Run(assemblyFile.FilePath, TestClassPath);
                 UpdateConfig(ConfigJsonPath, assemblyFile);
 
                 IAnalyzer[] analyzers = new EngineFactory().CreateAnalyzers(ConfigJsonPath);

@@ -9,6 +9,12 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 {
     internal class SingleLineScanner : IScanner
     {
+        private static class Parameters
+        {
+            public static readonly string[] AppendTokens = new[] { "+" };
+            public static readonly string[] InstructionTokens = new[] { "IL_[0-9a-fA-F]+:" };
+        }
+
         private readonly IScannerConfig _config;
         private readonly IScanPreprocessor _preprocessor;
         private readonly IHashProvider<string> _hashProvider;
@@ -36,7 +42,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 return;
             }
 
-            text = _preprocessor.Preprocess(line.Text, _config.InstructionTokens);
+            text = _preprocessor.Preprocess(line.Text, Parameters.InstructionTokens);
 
             _line = new Line(text, line.Hashes);
         }
@@ -72,7 +78,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
         private bool TryAppendToCurrentLine(Line line)
         {
-            string appendToken = _config.AppendTokens
+            string appendToken = Parameters.AppendTokens
                 .FirstOrDefault(token => line.Text.StartsWith(token, StringComparison.OrdinalIgnoreCase));
 
             if (appendToken != null)

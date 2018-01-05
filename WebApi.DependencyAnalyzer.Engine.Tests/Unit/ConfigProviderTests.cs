@@ -32,7 +32,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 bool includeSubdirs = true;
                 string[] textSearchPatterns = new[] { "/api/va", "/api/v2" };
                 string[] textSearchPatternsExclude = new[] { "swagger" };
-                string[] scanners = new[] { "SingleLine", "MultiLine" };
+                string[] scanners = new[] { "SingleLine", "StringFormat" };
                 string command = "command";
                 string arguments = "arguments";
 

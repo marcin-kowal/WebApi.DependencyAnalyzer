@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace WebApi.DependencyAnalyzer.Engine.Tests.Integration
 {
-    public static class Compiler
+    public static class InstantCompiler
     {
         public static void Run(string resultAssemblyPath, params string[] sourceFilePaths)
         {

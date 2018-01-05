@@ -7,7 +7,7 @@
       "includeSubdirs": "false",
       "textSearchPatterns": [ "api/v1.*" ],
       "textSearchPatternsExclude": [ "/swagger" ],
-      "scanners": [ "MultiLine", "SingleLine" ]
+      "scanners": [ "Attribute", "StringFormat", "SingleLine" ]
     }
   ],
   'process': {

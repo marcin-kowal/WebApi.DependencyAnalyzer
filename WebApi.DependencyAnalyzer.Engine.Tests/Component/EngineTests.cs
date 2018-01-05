@@ -14,7 +14,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
         private const string FileMarker = Marker + "FILE" + Marker;
         private const string ScannerMarker = Marker + "SCANNER" + Marker;
         private const string SingleLine = "SingleLine";
-        private const string MultiLine = "MultiLine";
+        private const string StringFormat = "StringFormat";
+        private const string Attribute = "Attribute";
 
         private const string CmdTypeCommand = "cmd";
         private const string CmdTypeArguments = "/k type {0} & exit";
@@ -74,12 +75,16 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     .Select(line => line.Replace(ScannerMarker, ToJson(SingleLine), StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
-                string[] configDataMultiLine = configData
-                    .Select(line => line.Replace(ScannerMarker, ToJson(MultiLine), StringComparison.OrdinalIgnoreCase))
+                string[] configDataStringFormat = configData
+                    .Select(line => line.Replace(ScannerMarker, ToJson(StringFormat), StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+
+                string[] configDataAttribute = configData
+                    .Select(line => line.Replace(ScannerMarker, ToJson(Attribute), StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
                 string[] configDataComposite = configData
-                    .Select(line => line.Replace(ScannerMarker, ToJson(MultiLine, SingleLine), StringComparison.OrdinalIgnoreCase))
+                    .Select(line => line.Replace(ScannerMarker, ToJson(StringFormat, Attribute, SingleLine), StringComparison.OrdinalIgnoreCase))
                     .ToArray();
 
                 string[] fileData1 = new[]
@@ -121,6 +126,15 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "                                                           object)"
                 };
 
+                string[] fileData4 = new[]
+                {
+                    "DisplayAttribute::.ctor() = (01 00 01 00 54 0E 0B 44 65 73 63 72 69 70 74 69   // ....T..Descripti",
+                    "6F 6E 30 61 70 69 2F 76 31 2F 6D 6F 64 75 6C 65   // on0api/v1/module",
+                    "2F 62 69 64 2F 7B 30 7D 2F 75 73 65 72 2F 7B 31   // /bid/{0}/user/{1",
+                    "7D 2F 70 65 72 73 6F 6E 61 6C 2F 73 65 74 74 69   // }/personal/setti",
+                    "6E 67 73 )                                        // ngs"
+                };
+
                 string[] expectedResult1 = new[]
                 {
                     "api/v1/module/bid/{0}/user/{1}/dashboard/settings",
@@ -139,14 +153,22 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Component
                     "api/v1/module-management/bids/{0}/versions/{1}/dashboard/settings/hierarchy/items"
                 };
 
+                string[] expectedResult4 = new[]
+                {
+                    "api/v1/module/bid/{0}/user/{1}/personal/settings"
+                };
+
                 yield return new object[] { configDataSingleLine, fileData1, expectedResult1 };
                 yield return new object[] { configDataSingleLine, fileData2, expectedResult2 };
 
-                yield return new object[] { configDataMultiLine, fileData3, expectedResult3 };
+                yield return new object[] { configDataStringFormat, fileData3, expectedResult3 };
+
+                yield return new object[] { configDataAttribute, fileData4, expectedResult4 };
 
                 yield return new object[] { configDataComposite, fileData1, expectedResult1 };
                 yield return new object[] { configDataComposite, fileData2, expectedResult2 };
                 yield return new object[] { configDataComposite, fileData3, expectedResult3 };
+                yield return new object[] { configDataComposite, fileData4, expectedResult4 };
             }
         }
 
