@@ -9,18 +9,17 @@ using Xunit;
 
 namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 {
-    public class MultiLineScannerTests
+    public class AttributeScannerTests
     {
         [Theory]
         [MemberData(nameof(ScanData))]
         public void ScanTest(
             IScannerConfig config,
             IHashProvider<string> hashProvider,
-            string[] lines, 
+            string[] lines,
             ScanResult[] expectedResult)
         {
-            SingleLineScanner singleLineScanner = new SingleLineScanner(config, new ScanPreprocessor(), hashProvider);
-            MultiLineScanner scanner = new MultiLineScanner(config, new ScanPreprocessor(), hashProvider);
+            AttributeScanner scanner = new AttributeScanner(config, new ScanPreprocessor(), hashProvider);
 
             foreach (string line in lines)
             {
@@ -39,13 +38,14 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
             {
                 string[] textSearchPatterns = new[] { "xt.*", ".* to" };
 
-                string[] lines = new[] {
-                    "IL_99 ldstr {0} to search",
-                    "IL_A  ldstr line: text",
-                    "IL_0B text System.String::Format(,) ' " };
+                string[] lines = new[]
+                {
+                    "MyAttribute ( // line: tex",
+                    "00 // t to s",
+                    "1A) // earch)"
+                };
 
                 long[] linesHashes = lines
-                    .Take(lines.Length - 1)
                     .Select(l => (long)l.Length)
                     .ToArray();
 

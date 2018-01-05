@@ -7,6 +7,8 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
 {
     public class ScanPreprocessorTests
     {
+        // TODO extend tests for Trim..()
+
         [Theory]
         [MemberData(nameof(PreprocessData))]
         public void PreprocessTest(
