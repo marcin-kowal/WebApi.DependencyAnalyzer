@@ -44,7 +44,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
             text = _preprocessor.Preprocess(line.Text, Parameters.InstructionTokens);
 
-            _line = new Line(text, line.Hashes);
+            _line = line.ReplaceText(text);
         }
 
         public void Scan()
@@ -86,7 +86,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
                 string text = line.Text.Remove(0, appendToken.Length);
                 text = _preprocessor.TrimStart(text);
 
-                _line = _line.Append(new Line(text, line.Hashes));
+                _line = _line.Append(line.ReplaceText(text));
 
                 return true;
             }

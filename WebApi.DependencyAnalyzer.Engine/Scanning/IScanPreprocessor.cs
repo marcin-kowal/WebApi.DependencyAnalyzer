@@ -6,9 +6,12 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
     {
         string Preprocess(string text, IReadOnlyCollection<string> tokensToRemove);
 
-        string TrimStart(string text, IReadOnlyCollection<char> charsToRemove = null);
-        string TrimEnd(string text, IReadOnlyCollection<char> charsToRemove = null);
-        string Trim(string text, IReadOnlyCollection<char> charsToRemove = null);
+        string TrimStart(string text);
+        string TrimStart(string text, char[] trimChars);
+        string TrimEnd(string text);
+        string TrimEnd(string text, char[] trimChars);
+        string Trim(string text);
+        string Trim(string text, char[] trimChars);
 
         string TrimStartTo(string text, IReadOnlyCollection<string> tokens);
     }

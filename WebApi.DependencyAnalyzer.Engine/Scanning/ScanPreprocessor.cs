@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace WebApi.DependencyAnalyzer.Engine.Scanning
@@ -26,34 +25,17 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             return text;
         }
 
-        public string TrimStart(string text, IReadOnlyCollection<char> charsToRemove = null)
-        {
-            char[] trimChars = GetTrimChars(charsToRemove);
+        public string TrimStart(string text) => text.TrimStart(Parameters.TrimChars);
 
-            return text.TrimStart(trimChars);
-        }
+        public string TrimStart(string text, char[] trimChars) => text.TrimStart(trimChars);
 
-        public string TrimEnd(string text, IReadOnlyCollection<char> charsToRemove = null)
-        {
-            char[] trimChars = GetTrimChars(charsToRemove);
+        public string TrimEnd(string text) => text.TrimEnd(Parameters.TrimChars);
 
-            return text.TrimEnd(trimChars);
-        }
+        public string TrimEnd(string text, char[] trimChars) => text.TrimEnd(trimChars);
 
-        public string Trim(string text, IReadOnlyCollection<char> charsToRemove = null)
-        {
-            char[] trimChars = GetTrimChars(charsToRemove);
+        public string Trim(string text) => text.Trim(Parameters.TrimChars);
 
-            return text.Trim(trimChars);
-        }
-
-        private char[] GetTrimChars(IReadOnlyCollection<char> charsToRemove)
-        {
-            char[] trimChars = charsToRemove?.ToArray() 
-                ?? Parameters.TrimChars;
-
-            return trimChars;
-        }
+        public string Trim(string text, char[] trimChars) => text.Trim(trimChars);
 
         public string TrimStartTo(string text, IReadOnlyCollection<string> tokens)
         {

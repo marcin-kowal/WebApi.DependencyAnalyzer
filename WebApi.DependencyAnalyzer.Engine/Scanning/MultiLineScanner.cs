@@ -54,7 +54,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             {
                 text = PrepareToPush(line.Text);
 
-                _lines.Push(new Line(text, line.Hashes));
+                _lines.Push(line.ReplaceText(text));
 
                 TryStartMultilineOperation(line);
                 TryFinishMultilineOperation(line);
@@ -68,7 +68,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             if (_multilineOperationInProgress)
             {
                 string text = PrepareToAppend(line.Text);
-                AppendToLastLine(new Line(text, line.Hashes));
+                AppendToLastLine(line.ReplaceText(text));
                 return true;
             }
 
@@ -78,7 +78,7 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
             if (appendToken != null)
             {
                 string text = PrepareToAppend(line.Text, appendToken);
-                AppendToLastLine(new Line(text, line.Hashes));
+                AppendToLastLine(line.ReplaceText(text));
 
                 return true;
             }

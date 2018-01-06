@@ -29,5 +29,10 @@ namespace WebApi.DependencyAnalyzer.Engine.Scanning
 
             return new Line(newText, newHashes);
         }
+
+        public Line ReplaceText(string text)
+        {
+            return new Line(text, Hashes);
+        }
     }
 }

@@ -31,5 +31,29 @@ namespace WebApi.DependencyAnalyzer.Engine.Tests.Unit
                 yield return new object[] { firstLine, secondLine, expectedResult };
             }
         }
+
+        [Theory]
+        [MemberData(nameof(ReplaceTextData))]
+        internal void ReplaceTextTest(Line line, string text, Line expectedResult)
+        {
+            Line result = line.ReplaceText(text);
+
+            result.ShouldBeEquivalentTo(expectedResult);
+        }
+
+        public static IEnumerable<object[]> ReplaceTextData
+        {
+            get
+            {
+                string first = "first";
+                string second = "second";
+
+                Line firstLine = new Line(first, first.Length);
+
+                Line expectedResult = new Line(second, new long[] { first.Length });
+
+                yield return new object[] { firstLine, second, expectedResult };
+            }
+        }
     }
 }
